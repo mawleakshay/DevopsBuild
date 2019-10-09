@@ -1,0 +1,70 @@
+/**********************************
+
+INVENTORY CUSTOM CODE
+
+**********************************/
+
+
+
+/*********************************
+
+SERVICE CUSTOM CODE
+
+*********************************/
+
+
+
+
+
+
+/**********************************
+
+SALES CUSTOM CODE
+
+**********************************/
+
+UPDATE FSSL_2
+SET mTopGross = CASE WHEN TRY_PARSE(mTopGross AS MONEY) < (-10000) THEN 0 
+ELSE ISNULL(TRY_PARSE(mTopGross AS MONEY),0) END --Or maybe another field that has the correct values
+WHERE iSiteID = 10222
+AND iAddressID IN (4)
+AND ((TRY_PARSE(mTopGross AS MONEY) IS NULL
+OR TRY_PARSE(mTopGross AS MONEY) < (-10000)
+OR ISNUMERIC(mTopGross) = 0)
+AND ISNULL(mTopGross,'') <> '')
+
+
+UPDATE FSSL_2
+SET chNew = CASE WHEN LEFT(chNew,1) = 'N' OR vchCurrentMiles < 200 AND vchYear >= (YEAR(DealDt) - 1) THEN 'N' ELSE 'U' END
+WHERE iSiteID = 10222
+AND iAddressID IN (4)
+AND LEFT(ISNULL(chNew,''),1) NOT IN ('N','U')
+
+UPDATE FSSL_2
+SET vchCurrentMiles = 0 
+WHERE iSiteID IN (10222)
+AND iAddressID IN (4)
+AND TRY_PARSE(vchCurrentMiles as INT) IS NULL
+
+UPDATE FSSL_2
+SET vchLeaseAPR = (CAST(vchLeaseAPR AS DECIMAL(10,5)) / 2400)
+WHERE iSiteID IN (10222)
+AND iAddressID IN (4)
+AND TRY_PARSE(ISNULL(vchLeaseAPR,0) AS DECIMAL(10,5)) <> 0
+AND vchPurchaseType = 'L'
+AND vchPaymentTerm > 1
+
+UPDATE FSSL_2
+SET DealID = TRY_PARSE(LEFT(dbo.DSfn_StripNonNUMERIC(ISNULL(DealID,'') + RIGHT(vchVIN,4) + CAST(CAST(DealDT AS DATE) AS VARCHAR)),18) AS BIGINT)
+WHERE iSiteID = 10222
+AND iAddressID IN (4)
+
+
+
+
+
+/*********************************
+
+QA NOTES
+
+*********************************/
